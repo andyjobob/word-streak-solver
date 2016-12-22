@@ -1,8 +1,11 @@
+import sys
+from userinput import *
+
 # TODO: Currently the word search algo stops when the first occurence of a word is found.
 #       This would exclude possible other occurrences of the same word that may have higher point values.
 
-print("Reading in word list ...")
-fh = open("enable1.txt", "r")
+print("    Reading in word list ...")
+fh = open("enable1_qu_mod.txt", "r")
 
 words = []
 word_count = 0
@@ -10,23 +13,26 @@ for line in fh:
     words.append(line.strip())
     word_count += 1
 
-#words = ["flied", "filed", "fled", "oldest", "soled", "help", "stole", "pa", "hoe", "shed", "magnet", "doer", "forget"]
-print("Done, read {0} words".format(word_count))
+print("    Done, read {0} words".format(word_count))
 
-grid = [["j", "n", "a", "s"],
-        ["i", "l", "o", "r"],
-        ["n", "u", "e", "d"],
-        ["g", "s", "t", "z"]]
+grid, bonus = proces_inputs(sys.argv)
 
-bonus = [["", "", "", ""],
-         ["", "3l", "", ""],
-         ["3l", "3l", "3w", ""],
-         ["", "", "", ""]]
+print(grid)
+print(bonus)
+#grid = [["j", "n", "a", "s"],
+#        ["i", "l", "o", "r"],
+#        ["n", "u", "e", "d"],
+#        ["g", "s", "t", "z"]]
 
-letter_values = {"a": 1, "b":  4, "c": 4, "d":  2, "e": 1, "f": 4,
-                 "g": 3, "h":  3, "i": 1, "j": 10, "k": 5, "l": 2,
-                 "m": 4, "n":  2, "o": 1, "p":  4, "?": 0, "r": 1,
-                 "s": 1, "t":  1, "u": 2, "v":  5, "w": 4, "x": 8,
+#bonus = [["", "", "", ""],
+#         ["", "3l", "", ""],
+#         ["3l", "3l", "3w", ""],
+#         ["", "", "", ""]]
+
+letter_values = {"a": 1, "b":  4, "c": 4, "d":  2, "e":  1, "f": 4,
+                 "g": 3, "h":  3, "i": 1, "j": 10, "k":  5, "l": 2,
+                 "m": 4, "n":  2, "o": 1, "p":  4, "?": 10, "r": 1,
+                 "s": 1, "t":  1, "u": 2, "v":  5, "w":  4, "x": 8,
                  "y": 3, "z": 10}
 
 # Word length bonus {word_length: bonus}
