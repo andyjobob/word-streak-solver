@@ -4,6 +4,7 @@ from userinput import *
 # TODO: Currently the word search algo stops when the first occurence of a word is found.
 #       This would exclude possible other occurrences of the same word that may have higher point values.
 
+# Load dictionary word list
 print("    Reading in word list ...")
 fh = open("enable1_qu_mod.txt", "r")
 
@@ -15,20 +16,10 @@ for line in fh:
 
 print("    Done, read {0} words".format(word_count))
 
+# Process input file to populate the word grid and bonus grid, each is a list of lists
 grid, bonus = proces_inputs(sys.argv)
 
-print(grid)
-print(bonus)
-#grid = [["j", "n", "a", "s"],
-#        ["i", "l", "o", "r"],
-#        ["n", "u", "e", "d"],
-#        ["g", "s", "t", "z"]]
-
-#bonus = [["", "", "", ""],
-#         ["", "3l", "", ""],
-#         ["3l", "3l", "3w", ""],
-#         ["", "", "", ""]]
-
+# Letter values dictionary, used to calculate word score
 letter_values = {"a": 1, "b":  4, "c": 4, "d":  2, "e":  1, "f": 4,
                  "g": 3, "h":  3, "i": 1, "j": 10, "k":  5, "l": 2,
                  "m": 4, "n":  2, "o": 1, "p":  4, "?": 10, "r": 1,
@@ -39,28 +30,34 @@ letter_values = {"a": 1, "b":  4, "c": 4, "d":  2, "e":  1, "f": 4,
 length_bonus = {1: 0, 2: 0, 3: 0, 4: 0, 5: 3, 6: 6, 7: 10, 8: 15, 9: 15, 10: 15, 11: 15, 12: 15}
 
 
-def func(prevcoor_array, working_answer):
-    """
+def find_word(word, prev_coor_array, working_answer):
+    """ Recursively searches for given word in letter grid, letter by letter
 
+    :param word:
     :param prevcoor_array:
     :param working_answer:
     :return:
     """
+
+    # Get the next character to look for, based off of how many characters already found
     temp_char = word[len(working_answer)]
-    array = build_array(prevcoor_array, temp_char)
 
-    # If the next character is found in at leas one valid position (array exists), then keep looking
-    if array:
-        for thing in array:
+    # Look for character and return array of coordinates, (row, column) tuples, corresponding to valid matches
+    coor_array = find_next_char(prev_coor_array, temp_char)
 
+    # If the next character is found in at least one valid position (array exists), then keep looking
+    if coor_array:
+        # For each coordinate found
+        for coordinate in coor_array:
+            # Check to see if word has been completely found
             if working_answer + temp_char == word:
-                temp_list = prevcoor_array[:]
-                temp_list.append(thing)
-                return temp_list
+                temp_coor_array = prev_coor_array[:]  # Make a copy
+                temp_coor_array.append(coordinate)
+                return temp_coor_array
             else:
-                temp_list = prevcoor_array[:]
-                temp_list.append(thing)
-                result = func(temp_list, working_answer + temp_char)
+                temp_coor_array = prev_coor_array[:]  # Make a copy
+                temp_coor_array.append(coordinate)
+                result = find_word(word, temp_coor_array, working_answer + temp_char)
                 if result is not None:
                     return result
 
@@ -72,51 +69,61 @@ def func(prevcoor_array, working_answer):
         return None
 
 
-def build_array(prevcoor_array, char):
-    """
+def find_next_char(prev_coor_array, char):
+    """ Finds all the coordinate pairs for the next character in the word, if any.
+    Coordinates must be adjacent to the last coordinate found in the word and must not include any coordinates
+    that are already part of the word.
 
-    :param prevcoor_array:
-    :param char:
-    :return:
+    :param prev_coor_array: Coordinates that are already part of the word
+    :param char: The next character we are looking for
+    :return: Array of coordinates, (row, col) tuples, representing valid character matches
     """
-    array = []
+    ret_array = []
 
-    # If first time to build array look over whole grid for matching character
-    if len(prevcoor_array) == 0:
+    # If first time to build array look over whole grid for matching characters
+    if len(prev_coor_array) == 0:
         for row in range(4):
             for col in range(4):
                 if grid[row][col] == char:
-                    array.append((row, col))
+                    ret_array.append((row, col))
 
     # All other times, look around character found last
     else:
-        last_coor = prevcoor_array[-1]
+        last_coor = prev_coor_array[-1]
+
+        # Loop over rows starting from one less, to one more than last coordinate row
         for row in range(last_coor[0] - 1, last_coor[0] + 2):
+            # If row is off grid, continue to next coordinate
             if (row < 0) or (row > 3):
                 continue
 
+            # Loop over columns starting from one less, to one more than last coordinate column
             for col in range(last_coor[1] - 1, last_coor[1] + 2):
+                # If column is off grid, continue to next coordinate
                 if (col < 0) or (col > 3):
                     continue
 
-                if (row, col) in prevcoor_array:
+                # If coordinate already part of word move to next coordinate
+                if (row, col) in prev_coor_array:
                     continue
 
+                # If character at given coordinate matches the character we are looking for, append to retrun array
                 if grid[row][col] == char:
-                    array.append((row, col))
+                    ret_array.append((row, col))
 
-    return array
+    return ret_array
 
 
 def get_score(word, word_array):
-    """ Formula = sum(letter_value * letter_bonus) * word_bonus) + length_bonus)
+    """ Calculate the score of a found word
+    Formula = sum(letter_value * letter_bonus) * word_bonus) + length_bonus)
 
+    :param word:
     :param word_array:
-    :return:
+    :return: Integer that is total point value of word
     """
 
-    total_points = 0
-    sum_letter_points = 0
+    total_letter_points = 0
     word_bonus = 1  # Default multiplier
     for coor in word_array:
         letter_bonus = 1  # Default multiplier
@@ -130,10 +137,10 @@ def get_score(word, word_array):
                 word_bonus *= int(bonus_chars[0])
 
         # Add letter points the the running sum of letter points
-        sum_letter_points += letter_values[grid[coor[0]][coor[1]]] * letter_bonus
+        total_letter_points += letter_values[grid[coor[0]][coor[1]]] * letter_bonus
 
     # Calculate total points
-    total_points = (sum_letter_points * word_bonus) + length_bonus[len(word)]
+    total_points = (total_letter_points * word_bonus) + length_bonus[len(word)]
 
     return total_points
 
@@ -143,9 +150,12 @@ def get_score(word, word_array):
 print("Looking for words in grid ...")
 answer_dict = {}
 word_count = 0
+
+# For each word in list of dictionary words
 for word in words:
 
-    word_array = func([], "")
+    # Recursively search for word in letter grid, find all possible solutions
+    word_array = find_word(word, [], "")
 
     if word_array:
         word_count += 1

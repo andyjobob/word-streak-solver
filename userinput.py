@@ -31,7 +31,7 @@ def proces_inputs(args):
 
         # First four lines should be the word grid
         if linecnt <= 4:
-            grid.append(line.split(","))
+            grid.append(list(line))
             #grid.append(re.split(r".", line))
 
         # Second four lines should the bonus grid
