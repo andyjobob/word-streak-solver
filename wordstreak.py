@@ -1,42 +1,16 @@
-import sys
 from userinput import *
-
-# TODO: Currently the word search algo stops when the first occurence of a word is found.
-#       This would exclude possible other occurrences of the same word that may have higher point values.
-
-# Load dictionary word list
-print("    Reading in word list ...")
-fh = open("enable1_qu_mod.txt", "r")
-
-words = []
-word_count = 0
-for line in fh:
-    words.append(line.strip())
-    word_count += 1
-
-print("    Done, read {0} words".format(word_count))
-
-# Process input file to populate the word grid and bonus grid, each is a list of lists
-grid, bonus = proces_inputs(sys.argv)
-
-# Letter values dictionary, used to calculate word score
-letter_values = {"a": 1, "b":  4, "c": 4, "d":  2, "e":  1, "f": 4,
-                 "g": 3, "h":  3, "i": 1, "j": 10, "k":  5, "l": 2,
-                 "m": 4, "n":  2, "o": 1, "p":  4, "?": 10, "r": 1,
-                 "s": 1, "t":  1, "u": 2, "v":  5, "w":  4, "x": 8,
-                 "y": 3, "z": 10}
-
-# Word length bonus {word_length: bonus}
-length_bonus = {1: 0, 2: 0, 3: 0, 4: 0, 5: 3, 6: 6, 7: 10, 8: 15, 9: 15, 10: 15, 11: 15, 12: 15}
 
 
 def find_word(word, prev_coor_array, working_answer):
     """ Recursively searches for given word in letter grid, letter by letter
+    Example returned data (two solutions for the same word):
+    [[(1, 0), (0, 1), (1, 1), (2, 2), (3, 2)],
+     [(1, 0), (2, 0), (1, 1), (2, 2), (3, 2)]]
 
     :param word:
     :param prevcoor_array:
     :param working_answer:
-    :return:
+    :return: A list of lists of tuple coordinates
     """
     result = None
 
@@ -57,7 +31,6 @@ def find_word(word, prev_coor_array, working_answer):
                 if result is None:
                     result = []
                 result.append(temp_coor_array)
-                #return temp_coor_array
             else:
                 temp_coor_array = prev_coor_array[:]  # Make a copy
                 temp_coor_array.append(coordinate)
@@ -67,8 +40,7 @@ def find_word(word, prev_coor_array, working_answer):
                         result = []
                     result.extend(temp_result)
 
-        # If after all coordinates in coor_array the word is not found, then return none
-        #return None
+        # Return the result after going through all coordinates in coor_array
         return result
 
     # If the next character was not found in any valid position (array is empty), then return none
@@ -154,6 +126,24 @@ def get_score(word, word_array):
 #####################################################################
 ### MAIN
 #####################################################################
+print("Loading inputs ...")
+
+#  Load dictionary data
+words = load_dictionary()
+
+# Process input file to populate the word grid and bonus grid, each is a list of lists
+grid, bonus = process_inputs(sys.argv)
+
+# Letter values dictionary, used to calculate word score
+letter_values = {"a": 1, "b":  4, "c": 4, "d":  2, "e":  1, "f": 4,
+                 "g": 3, "h":  3, "i": 1, "j": 10, "k":  5, "l": 2,
+                 "m": 4, "n":  2, "o": 1, "p":  4, "?": 10, "r": 1,
+                 "s": 1, "t":  1, "u": 2, "v":  5, "w":  4, "x": 8,
+                 "y": 3, "z": 10}
+
+# Word length bonus {word_length: bonus}
+length_bonus = {1: 0, 2: 0, 3: 0, 4: 0, 5: 3, 6: 6, 7: 10, 8: 15, 9: 15, 10: 15, 11: 15, 12: 15}
+
 print("Looking for words in grid ...")
 answer_dict = {}
 word_count = 0
@@ -176,6 +166,9 @@ for word in words:
 print("Done, found {0} unique words".format(word_count))
 
 # Sort answers based on score
-for word in sorted(answer_dict, key=lambda x: answer_dict[x][0]):
-    print("Found word: {0:20} Score: {1:3}  Points: {2}".format(word, answer_dict[word][0], answer_dict[word][1]))
+#for word in sorted(answer_dict, key=lambda x: answer_dict[x][0]):
+#    print("Found word: {0:20} Score: {1:3}  Points: {2}".format(word, answer_dict[word][0], answer_dict[word][1]))
 
+# Sort answers alphabetically
+for word in sorted(answer_dict.keys()):
+    print("Found word: {0:20} Score: {1:3}  Points: {2}".format(word, answer_dict[word][0], answer_dict[word][1]))
