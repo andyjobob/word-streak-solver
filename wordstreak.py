@@ -38,6 +38,7 @@ def find_word(word, prev_coor_array, working_answer):
     :param working_answer:
     :return:
     """
+    result = None
 
     # Get the next character to look for, based off of how many characters already found
     temp_char = word[len(working_answer)]
@@ -52,17 +53,23 @@ def find_word(word, prev_coor_array, working_answer):
             # Check to see if word has been completely found
             if working_answer + temp_char == word:
                 temp_coor_array = prev_coor_array[:]  # Make a copy
-                temp_coor_array.append(coordinate)
-                return temp_coor_array
+                temp_coor_array.append(coordinate)    # Append final coordinate
+                if result is None:
+                    result = []
+                result.append(temp_coor_array)
+                #return temp_coor_array
             else:
                 temp_coor_array = prev_coor_array[:]  # Make a copy
                 temp_coor_array.append(coordinate)
-                result = find_word(word, temp_coor_array, working_answer + temp_char)
-                if result is not None:
-                    return result
+                temp_result = find_word(word, temp_coor_array, working_answer + temp_char)
+                if temp_result:
+                    if result is None:
+                        result = []
+                    result.extend(temp_result)
 
-        # If after all things in array the word is not found, then return none
-        return None
+        # If after all coordinates in coor_array the word is not found, then return none
+        #return None
+        return result
 
     # If the next character was not found in any valid position (array is empty), then return none
     else:
@@ -154,15 +161,19 @@ word_count = 0
 # For each word in list of dictionary words
 for word in words:
 
-    # Recursively search for word in letter grid, find all possible solutions
+    # Recursively search for word in letter grid, find all possible solutions, returns a list of lists of tuple coordinates
     word_array = find_word(word, [], "")
 
     if word_array:
         word_count += 1
-        word_score = get_score(word, word_array)
-        answer_dict[word] = (word_score, word_array)
+        for letter_array in word_array:
+            word_score = get_score(word, letter_array)
+            if word in answer_dict.keys():
+                print("    Already found word {0}, this one worth {1}".format(word, word_score))
+            else:
+                answer_dict[word] = (word_score, letter_array)
 
-print("Done, found {0} words".format(word_count))
+print("Done, found {0} unique words".format(word_count))
 
 # Sort answers based on score
 for word in sorted(answer_dict, key=lambda x: answer_dict[x][0]):
