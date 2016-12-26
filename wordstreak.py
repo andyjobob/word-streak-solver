@@ -160,6 +160,8 @@ for word in words:
             word_score = get_score(word, letter_array)
             if word in answer_dict.keys():
                 print("    Already found word {0}, this one worth {1}".format(word, word_score))
+                if word_score > answer_dict[word][0]:
+                    answer_dict[word] = (word_score, letter_array)
             else:
                 answer_dict[word] = (word_score, letter_array)
 
@@ -170,5 +172,34 @@ print("Done, found {0} unique words".format(word_count))
 #    print("Found word: {0:20} Score: {1:3}  Points: {2}".format(word, answer_dict[word][0], answer_dict[word][1]))
 
 # Sort answers alphabetically
-for word in sorted(answer_dict.keys()):
-    print("Found word: {0:20} Score: {1:3}  Points: {2}".format(word, answer_dict[word][0], answer_dict[word][1]))
+#for word in sorted(answer_dict.keys()):
+#    print("Found word: {0:20} Score: {1:3}  Points: {2}".format(word, answer_dict[word][0], answer_dict[word][1]))
+
+# Sort answers based on letter coordinates
+last_coor = None
+word_group = []
+word_group_score = 0
+word_group_list = []
+for word in sorted(answer_dict, key=lambda x: answer_dict[x][1]):
+    curr_coor = answer_dict[word][1][:2]  # Store first two coordinates of word
+
+    # If last coordinates match the current coordinates, add word to group
+    if last_coor == curr_coor:
+        word_group.append(word)
+        word_group_score += answer_dict[word][0]
+
+    # If not, then append group to group list and start new group
+    else:
+        word_group_list.append([word_group_score, word_group])
+        word_group = [word]
+        word_group_score = answer_dict[word][0]
+
+    # Update last coordinates
+    last_coor = curr_coor
+
+# Print out words in groups sorted by total group score
+for group in sorted(word_group_list, key=lambda x: x[0]):
+    for word in group[1]:
+        print("    Found word: {0:20} Score: {1:3}  Points: {2}".format(word, answer_dict[word][0], answer_dict[word][1]))
+
+    print("Total Group Score: {0}".format(group[0]))
